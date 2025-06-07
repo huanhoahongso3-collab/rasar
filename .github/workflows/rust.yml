@@ -1,0 +1,62 @@
+# Name of the workflow, displayed in the GitHub Actions tab.
+name: Build Rasar for Linux
+
+# Define when the workflow should run.
+on:
+  # Trigger on pushes to any branch.
+  push:
+    branches:
+      - '**' # This matches all branches, including main/master
+
+  # Trigger on pull requests to any branch.
+  pull_request:
+    branches:
+      - '**' # This matches all branches
+
+  # Allows you to run this workflow manually from the Actions tab.
+  workflow_dispatch:
+
+# Define the jobs that will run in this workflow.
+jobs:
+  # This job is responsible for building the Rasar application.
+  build_linux:
+    # Specify the runner environment. ubuntu-latest is a virtual machine
+    # running the latest Ubuntu Linux version.
+    runs-on: ubuntu-latest
+
+    # Define the steps that this job will execute.
+    steps:
+      # Step 1: Checkout the repository code.
+      # This action checks out your repository under $GITHUB_WORKSPACE,
+      # so your workflow can access it.
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Rust toolchain.
+      # This action installs the specified Rust toolchain (stable by default).
+      # It also installs Cargo.
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # You can specify a different Rust version here, e.g., '1.70.0'
+          # If left blank or 'stable', the latest stable version will be used.
+          toolchain: stable
+
+      # Step 3: Build the Rasar application in release mode.
+      # The '--release' flag optimizes the binary for performance and size.
+      - name: Build Rasar
+        run: cargo build --release
+
+      # Step 4: Upload the compiled binary as a workflow artifact.
+      # This makes the compiled 'rasar' executable available for download
+      # from the GitHub Actions run summary page.
+      - name: Upload Rasar Binary
+        uses: actions/upload-artifact@v4
+        with:
+          # The name of the artifact.
+          name: rasar-linux-binary
+          # The path to the file(s) to upload.
+          # The compiled executable is in target/release/rasar on Linux.
+          path: target/release/rasar
+          # Optional: How long to retain the artifact (e.g., 5 days).
+          retention-days: 5
